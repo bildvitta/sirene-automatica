@@ -35,6 +35,7 @@ int key_status, last_key = 0, key1_status, key2_status, key3_status, key4_status
 
 // System Status
 int screen = 0, mode = 0, tone_mode = 0, tone_duration = 0, tone_interval = 6, start_hour = 7, end_hour = 18;
+Time time;
 
 void setup() {
   // RTC
@@ -96,9 +97,8 @@ void init_system() {
 }
 
 void loop() {
+  cron();
   get_inputs();
-
-  // cron();
 
   switch (screen) {
     case 0:
@@ -129,13 +129,14 @@ void standby_screen() {
   lcd.setCursor(0, 0);
   lcd.print("   Bild Vitta   "); 
   lcd.setCursor(1, 1);
-  lcd.print(rtc.getDateStr(FORMAT_SHORT));
+  if(time.date < 10) lcd.print("0");
+  lcd.print(time.date);
+  lcd.print("/");
+  if(time.mon < 10) lcd.print("0");
+  lcd.print(time.mon);
 
-  lcd.setCursor(6, 1);
-  lcd.print(" ");
+  lcd.setCursor(7, 1);
   lcd.print(rtc.getTimeStr());
-
-  // delay (1000);
 }
 
 void incrementer_screen(const String& text, int data) {
@@ -199,6 +200,18 @@ void rtc_screen() {
   lcd.print("Ajuste data/hora");
   lcd.setCursor(0, 1);
   lcd.print("   [ ENTRAR ]   ");
+}
+
+void cron() {
+  time = rtc.getTime();
+
+  if(time.sec != 0) return;
+
+  if(tone_interval < 4){
+    if(time.min % (tone_interval * 10) == 0) play_tone("   Acionamento  ", "   Programado   ");
+  } else {
+    if(time.min == 0) play_tone("   Acionamento  ", "   Programado   ");
+  }
 }
 
 void get_inputs(){
@@ -273,20 +286,19 @@ void get_inputs(){
   }
 
   if(key_status == 4){
-    lcd.setCursor(0,0);
-    lcd.print("   Acionamento  ");
-    lcd.setCursor(0,1);
-    lcd.print("     Manual     ");
-
-    play_tone();
-    lcd.clear();
+    play_tone("   Acionamento  ", "     Manual     ");
   }
 
   last_key = key_status;
 }
 
-void play_tone() {
+void play_tone(const String& line1, const String& line2) {
   int i;
+
+  lcd.setCursor(0,0);
+  lcd.print(line1);
+  lcd.setCursor(0,1);
+  lcd.print(line2);
 
   switch (tone_mode) {
     case 1:
@@ -316,4 +328,5 @@ void play_tone() {
   }
 
   digitalWrite(relay, HIGH);
+  lcd.clear();
 }
