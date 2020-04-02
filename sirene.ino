@@ -73,7 +73,9 @@ void setup() {
 
   if(start_hour > 23 || start_hour < 0) start_hour = 7;
   if(end_hour > 23 || end_hour < 0) end_hour = 18;
-  if(tone_duration > 30 || end_hour < 0) tone_duration = 5;
+  if(tone_duration > 30 || tone_duration < 0) tone_duration = 5;
+  if(tone_interval > 6 || tone_interval < 0) tone_interval = 6;
+  if(tone_mode > 3 || tone_mode < 0) tone_mode = 1;
 
   init_system();
 }
@@ -111,6 +113,15 @@ void loop() {
     case 3:
     incrementer_label_screen("Duracao do toque", "seg", tone_duration);
     break;
+    case 4:
+    interval_screen();
+    break;
+    case 5:
+    mode_screen();
+    break;
+    case 6:
+    rtc_screen();
+    break;
   }
 }
 
@@ -141,12 +152,53 @@ void incrementer_label_screen(const String& text, const String& label, int data)
   lcd.setCursor(0, 0);
   lcd.print(text);
   lcd.setCursor(0, 1);
-  lcd.print("   +   ");
+  lcd.print("  +   ");
   if(data < 10) lcd.print(" ");
   lcd.print(data);
   lcd.print(" ");
   lcd.print(label);
   lcd.print("  -  ");
+}
+
+void interval_screen() {
+  lcd.setCursor(0, 0);
+  lcd.print("Intervalo toque ");
+
+  lcd.setCursor(0, 1);
+  if(tone_interval == 6) {
+    lcd.print("< hora em hora >");
+  } else if(tone_interval == 3) {
+    lcd.print("< cada meia hr >");
+  } else {
+    lcd.print("<  cada ");
+    lcd.print(tone_interval);
+    lcd.print("0 min >");
+  }
+}
+
+void mode_screen() {
+  lcd.setCursor(0, 0);
+  lcd.print("  Tipo do toque ");
+
+  lcd.setCursor(0, 1);
+  switch (tone_mode) {
+    case 1:
+    lcd.print("<   continuo   >");
+    break;
+    case 2:
+    lcd.print("<  pulso longo >");
+    break;
+    case 3:
+    lcd.print("<  pulso curto >");
+    break;
+  }
+}
+
+void rtc_screen() {
+  lcd.setCursor(0, 0);
+  lcd.print("Ajuste data/hora");
+  lcd.setCursor(0, 1);
+  lcd.print("   [ ENTRAR ]   ");
 }
 
 void get_inputs(){
@@ -170,7 +222,7 @@ void get_inputs(){
   if(key_status == 1 && last_key != 1) {
     screen++;
     lcd.clear();
-    if(screen > 3) screen = 0;
+    if(screen > 6) screen = 0;
   }
 
   if(key_status != last_key){
@@ -198,6 +250,24 @@ void get_inputs(){
         if(tone_duration > 30) tone_duration = 30;
 
         EEPROM.write(1, tone_duration);
+      break;
+      case 4:
+        if(key_status == 2) tone_interval += 1;
+        if(key_status == 3) tone_interval -= 1;
+        if(tone_interval < 1) tone_interval = 6;
+        if(tone_interval == 4) tone_interval = 6;
+        if(tone_interval == 5) tone_interval = 3;
+        if(tone_interval > 6) tone_interval = 1;
+
+        EEPROM.write(2, tone_interval);
+      break;
+      case 5:
+        if(key_status == 2) tone_mode += 1;
+        if(key_status == 3) tone_mode -= 1;
+        if(tone_mode < 1) tone_mode = 3;
+        if(tone_mode > 3) tone_mode = 1;
+
+        EEPROM.write(0, tone_mode);
       break;
     }
   }
