@@ -273,15 +273,47 @@ void get_inputs(){
   }
 
   if(key_status == 4){
-    // play_tone();
-
     lcd.setCursor(0,0);
     lcd.print("   Acionamento  ");
     lcd.setCursor(0,1);
     lcd.print("     Manual     ");
-    delay(2000);
+
+    play_tone();
     lcd.clear();
   }
 
   last_key = key_status;
+}
+
+void play_tone() {
+  int i;
+
+  switch (tone_mode) {
+    case 1:
+    digitalWrite(relay, LOW);
+    delay(tone_duration * 1000);
+    break;
+    case 2: // long tone
+    for(i = 0; i <= tone_duration; i++) {
+      if(i % 2 == 0) {
+        digitalWrite(relay, LOW);
+      } else {
+        digitalWrite(relay, HIGH);
+      }
+      delay(1000);
+    }
+    break;
+    case 3: // short tone
+    for(i = 0; i <= (tone_duration * 2); i++) {
+      if(i % 2 == 0) {
+        digitalWrite(relay, LOW);
+      } else {
+        digitalWrite(relay, HIGH);
+      }
+      delay(500);
+    }
+    break;
+  }
+
+  digitalWrite(relay, HIGH);
 }
