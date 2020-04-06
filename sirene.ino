@@ -10,10 +10,10 @@
 
 // Pins
 
-#define key1 11
-#define key2 10
-#define key3 13
-#define key4 12
+#define key1 10
+#define key2 9
+#define key3 12
+#define key4 11
 
 #define relay 7
 
@@ -206,6 +206,9 @@ void cron() {
   time = rtc.getTime();
 
   if(time.sec != 0) return;
+  if(time.hour < start_hour) return;
+  if(time.hour > end_hour) return;
+  if(time.hour == end_hour && time.min != 0) return;
 
   if(tone_interval < 4){
     if(time.min % (tone_interval * 10) == 0) play_tone("   Acionamento  ", "   Programado   ");
